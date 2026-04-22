@@ -181,20 +181,7 @@ onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};renderAll();});
 onValue(ref(db,"cafe/users"),snap=>{usersData=snap.val()||{};renderUsers();});
 onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
 
-const ADMIN_SESSION_KEY="cafe_admin_session";
-
-function saveAdminSession(){
-  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({expires:Date.now()+60*60*1000}));
-}
-function loadAdminSession(){
-  try{
-    const s=JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY));
-    if(s&&s.expires>Date.now())return true;
-    localStorage.removeItem(ADMIN_SESSION_KEY);
-  }catch{}
-  return false;
-}
-function clearAdminSession(){localStorage.removeItem(ADMIN_SESSION_KEY);}
+let _adminAuth = false;
 
 function startAdminApp(){
   document.getElementById("login-screen").style.display="none";
@@ -202,29 +189,35 @@ function startAdminApp(){
   renderAll();
 }
 
-// Auto-login if session valid
-if(loadAdminSession()){
-  initDB().then(()=>startAdminApp());
-}
-
 document.getElementById("pwd").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 
-window.doLogin=async function(){
-  await initDB();
-  const snap=await get(ref(db,"cafe/users/admin"));
-  const u=snap.val();
-  const v=document.getElementById("pwd").value;
-  if(u&&v===u.password){
-    saveAdminSession();
+window.doLogin = async function() {
+  const pwd=document.getElementById("pwd").value;
+  const errEl=document.getElementById("lerr");
+  errEl.textContent="";
+  if(!pwd){errEl.textContent="Введіть пароль";return;}
+  const btn=document.querySelector("#login-screen .btn-green");
+  btn.disabled=true; btn.textContent="⏳ Вхід...";
+  try {
+    await initDB();
+    const snap=await get(ref(db,"cafe/users/admin"));
+    const u=snap.val();
+    if(!u||pwd!==u.password) throw new Error("Невірний пароль");
+    _adminAuth=true;
+    document.getElementById("login-logo").src=LOGO_SRC;
+    document.getElementById("app-logo").src=LOGO_SRC;
     startAdminApp();
-  }else{document.getElementById("lerr").textContent="Невірний пароль";}
+  } catch(e){errEl.textContent=e.message;}
+  finally{btn.disabled=false;btn.textContent="Увійти";}
 };
-window.doLogout=function(){
-  clearAdminSession();
+
+window.doLogout = function() {
+  _adminAuth=false;
   document.getElementById("login-screen").style.display="flex";
   document.getElementById("app-screen").style.display="none";
   document.getElementById("pwd").value="";
 };
+
 
 function showToast(){const t=document.getElementById("toast");t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
 

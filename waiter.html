@@ -150,57 +150,50 @@ let currentSection="obidy";
 let menuData={};
 let ordersData={};
 
-const SESSION_KEY="cafe_waiter_session";
-const SESSION_HOURS=8;
+let _session = null;
 
-function saveSession(user){
-  const session={user,expires:Date.now()+SESSION_HOURS*60*60*1000};
-  localStorage.setItem(SESSION_KEY,JSON.stringify(session));
-}
-function loadSession(){
-  try{
-    const s=JSON.parse(localStorage.getItem(SESSION_KEY));
-    if(s&&s.expires>Date.now())return s.user;
-    localStorage.removeItem(SESSION_KEY);
-  }catch{}
-  return null;
-}
-function clearSession(){localStorage.removeItem(SESSION_KEY);}
-
-function startApp(user){
-  currentUser=user;
-  document.getElementById("login-screen").style.display="none";
-  document.getElementById("app-screen").style.display="block";
-  document.getElementById("waiter-name").textContent=user.name;
-  cart={};renderMenu("obidy");
+function startApp(user) {
+  _session = user;
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("app-screen").style.display = "block";
+  document.getElementById("waiter-name").textContent = user.name;
+  document.getElementById("app-logo").src = LOGO_SRC;
+  document.getElementById("login-logo").src = LOGO_SRC;
+  cart = {}; renderMenu("obidy");
 }
 
-onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};if(currentUser)renderMenu(currentSection);});
+onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};if(_session)renderMenu(currentSection);});
 onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
-
-// Auto-login if session exists
-const savedSession=loadSession();
-if(savedSession)startApp(savedSession);
-
 document.getElementById("pwd-input").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+document.getElementById("login-input").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 
-window.doLogin=async function(){
+
+window.doLogin = async function() {
   const login=document.getElementById("login-input").value.trim();
   const pwd=document.getElementById("pwd-input").value;
-  const snap=await get(ref(db,"cafe/users/"+login));
-  const u=snap.val();
-  if(u&&u.role==="waiter"&&u.password===pwd){
-    const user={login,name:u.name};
-    saveSession(user);
-    startApp(user);
-  }else{document.getElementById("lerr").textContent="Невірний логін або пароль";}
+  const errEl=document.getElementById("lerr");
+  errEl.textContent="";
+  if(!login||!pwd){errEl.textContent="Введіть логін та пароль";return;}
+  const btn=document.querySelector("#login-screen .btn-green");
+  btn.disabled=true; btn.textContent="⏳ Вхід...";
+  try {
+    const snap=await get(ref(db,"cafe/users/"+login));
+    const u=snap.val();
+    if(!u||u.role!=="waiter"||u.password!==pwd) throw new Error("Невірний логін або пароль");
+    startApp({login,name:u.name||login});
+  } catch(e){errEl.textContent=e.message;}
+  finally{btn.disabled=false;btn.textContent="Увійти";}
 };
-window.doLogout=function(){
-  currentUser=null;cart={};
-  clearSession();
+
+window.doLogout = function() {
+  _session=null; cart={};
   document.getElementById("login-screen").style.display="flex";
   document.getElementById("app-screen").style.display="none";
+  document.getElementById("login-input").value="";
+  document.getElementById("pwd-input").value="";
+  document.getElementById("lerr").textContent="";
 };
+
 
 window.switchSection=function(sid,btn){
   currentSection=sid;
@@ -302,19 +295,29 @@ window.selectTable=function(n,btn){
   document.getElementById("confirm-err").textContent="";
 };
 
-window.submitOrder=async function(){
-  if(!selectedTable){document.getElementById("confirm-err").textContent="Оберіть столик";return;}
-  const items=getCartItems();
-  const orderId="ord_"+Date.now();
-  await set(ref(db,"cafe/orders/"+orderId),{
-    id:orderId,table:selectedTable,
-    waiterName:currentUser.name,waiterLogin:currentUser.login,
-    items:items.map(i=>{return{id:i.id,name:i.name,price:i.price,qty:i.qty}}),
-    status:"open",createdAt:new Date().toISOString()
-  });
-  cart={};showPage("pg-success");
-  document.getElementById("cart-bar").style.display="none";
+let _submitting=false;
+window.submitOrder = async function() {
+  if(_submitting) return;
+  const tableEl=document.querySelector(".table-btn.selected");
+  const errEl=document.getElementById("confirm-err");
+  errEl.textContent="";
+  if(!tableEl){errEl.textContent="Оберіть столик!";return;}
+  _submitting=true;
+  const btn=document.querySelector("#pg-confirm .btn-green");
+  if(btn){btn.disabled=true;btn.textContent="⏳ Відправляємо...";}
+  try {
+    const orderId=Date.now().toString();
+    await set(ref(db,"cafe/orders/"+orderId),{
+      id:orderId, table:tableEl.dataset.table,
+      waiterLogin:_session.login, waiterName:_session.name,
+      items:getCartItems(), status:"open",
+      createdAt:new Date().toISOString()
+    });
+    cart={}; showPage("pg-success"); updateCartBar();
+  } catch(e){errEl.textContent="Помилка: "+e.message;}
+  finally{_submitting=false;if(btn){btn.disabled=false;btn.textContent="Відправити на кухню";}}
 };
+
 
 window.backToMenu=function(){showPage("pg-menu");renderMenu(currentSection);};
 window.newOrder=function(){cart={};showPage("pg-menu");renderMenu(currentSection);};
