@@ -74,19 +74,20 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 // Session check
 const KITCHEN_PASS = "Kitchen123";
 const SESSION_KEY = "kitchen_session";
+let _kitchenSession = null;
 const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
 
 function checkSession() {
-  const s = localStorage.getItem(SESSION_KEY);
+  const s = _kitchenSession;
   if (!s) return false;
   try {
-    const { expiry } = JSON.parse(s);
+    const { expiry } = s;
     return Date.now() < expiry;
   } catch { return false; }
 }
 
 function saveSession() {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ expiry: Date.now() + SESSION_DURATION }));
+  _kitchenSession = { expiry: Date.now() + SESSION_DURATION };
 }
 
 window.doKitchenLogin = function() {
@@ -117,15 +118,15 @@ document.addEventListener("keydown", function(e) {
 </script>
 <script type="module">
 const firebaseConfig = {
-    apiKey: "AIzaSyB584GOt9Pf6GA5M2N-Txi0Yk2JmKTRJ-k",
-    authDomain: "cafe-kpk.firebaseapp.com",
-    databaseURL: "https://cafe-kpk-default-rtdb.firebaseio.com",
-    projectId: "cafe-kpk",
-    storageBucket: "cafe-kpk.firebasestorage.app",
-    messagingSenderId: "1052158611750",
-    appId: "1:1052158611750:web:97522c938d94932f51b1e7",
-    measurementId: "G-592QG3E6JP"
-  };
+  apiKey: "AIzaSyAnWD4kWKRyUkHkeyR5oTJRoGz5fjDwFN4",
+  authDomain: "kafe-26592.firebaseapp.com",
+  databaseURL: "https://kafe-26592-default-rtdb.firebaseio.com",
+  projectId: "kafe-26592",
+  storageBucket: "kafe-26592.firebasestorage.app",
+  messagingSenderId: "580382684127",
+  appId: "1:580382684127:web:d2a786f6a31432a8f78a6a",
+  measurementId: "G-X0GMR7973H"
+};
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 const app = initializeApp(firebaseConfig);
