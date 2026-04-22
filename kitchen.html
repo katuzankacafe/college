@@ -74,20 +74,19 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 // Session check
 const KITCHEN_PASS = "Kitchen123";
 const SESSION_KEY = "kitchen_session";
-let _kitchenSession = null;
 const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
 
 function checkSession() {
-  const s = _kitchenSession;
+  const s = localStorage.getItem(SESSION_KEY);
   if (!s) return false;
   try {
-    const { expiry } = s;
+    const { expiry } = JSON.parse(s);
     return Date.now() < expiry;
   } catch { return false; }
 }
 
 function saveSession() {
-  _kitchenSession = { expiry: Date.now() + SESSION_DURATION };
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ expiry: Date.now() + SESSION_DURATION }));
 }
 
 window.doKitchenLogin = function() {
