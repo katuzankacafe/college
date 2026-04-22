@@ -194,21 +194,17 @@ window.doLogin = async function() {
   const btn = document.querySelector("#login-screen .btn-green");
   btn.disabled = true; btn.textContent = "...";
   try {
-    const email = loginToEmail(login);
-    const cred = await signInWithEmailAndPassword(auth, email, pwd);
     const snap = await get(ref(db, "cafe/users/" + login));
     const u = snap.val();
-    if (!u || u.role !== "waiter") {
-      await signOut(auth);
-      throw new Error("Немає доступу");
+    if (u && u.role === "waiter" && u.password === pwd) {
+      const user = { login, name: u.name };
+      saveSession(user);
+      startApp(user);
+    } else {
+      errEl.textContent = "Невірний логін або пароль";
     }
-    const user = { login, name: u.name };
-    saveSession(user);
-    startApp(user);
   } catch(e) {
-    const msg = (e.code === "auth/wrong-password" || e.code === "auth/user-not-found" || e.code === "auth/invalid-credential")
-      ? "Невірний логін або пароль" : e.message;
-    errEl.textContent = msg;
+    errEl.textContent = "Помилка: " + e.message;
   } finally {
     btn.disabled = false; btn.textContent = "Увійти";
   }
