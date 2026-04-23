@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Навчальне кафе — Катюжанський коледж</title>
+<title>РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ вЂ” РљР°С‚СЋР¶Р°РЅСЃСЊРєРёР№ РєРѕР»РµРґР¶</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
 
@@ -80,36 +80,36 @@ body{font-family:"Nunito",sans-serif;background:var(--bg);color:var(--text);min-
 </head>
 <body>
 <div class="header">
-  <img id="logo" alt="Емблема">
-  <div class="header-text"><h1>Навчальне кафе</h1><p>Катюжанський професійний коледж</p></div>
+  <img id="logo" alt="Р•РјР±Р»РµРјР°">
+  <div class="header-text"><h1>РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ</h1><p>РљР°С‚СЋР¶Р°РЅСЃСЊРєРёР№ РїСЂРѕС„РµСЃС–Р№РЅРёР№ РєРѕР»РµРґР¶</p></div>
 </div>
 <div class="breadcrumb" id="bc"></div>
 <div class="container">
   <div class="page active" id="page-home">
-    <div class="home-greeting"><h2>Смачного! 🍽️</h2><p>Оберіть розділ меню</p></div>
+    <div class="home-greeting"><h2>РЎРјР°С‡РЅРѕРіРѕ! рџЌЅпёЏ</h2><p>РћР±РµСЂС–С‚СЊ СЂРѕР·РґС–Р» РјРµРЅСЋ</p></div>
     <div class="section-cards">
       <div class="section-card" onclick="openSection('obidy')">
-        <div class="card-icon green">🥗</div>
-        <div class="card-body"><h3>Обіди</h3><p>Перші, другі страви, салати</p></div>
-        <div class="card-arrow">›</div>
+        <div class="card-icon green">рџҐ—</div>
+        <div class="card-body"><h3>РћР±С–РґРё</h3><p>РџРµСЂС€С–, РґСЂСѓРіС– СЃС‚СЂР°РІРё, СЃР°Р»Р°С‚Рё</p></div>
+        <div class="card-arrow">вЂє</div>
       </div>
       <div class="section-card" onclick="openSection('kafeteriy')">
-        <div class="card-icon orange">☕</div>
-        <div class="card-body"><h3>Кафетерій</h3><p>Напої, випічка, закуски</p></div>
-        <div class="card-arrow">›</div>
+        <div class="card-icon orange">в•</div>
+        <div class="card-body"><h3>РљР°С„РµС‚РµСЂС–Р№</h3><p>РќР°РїРѕС—, РІРёРїС–С‡РєР°, Р·Р°РєСѓСЃРєРё</p></div>
+        <div class="card-arrow">вЂє</div>
       </div>
     </div>
   </div>
   <div class="page" id="page-obidy">
-    <div class="section-header"><h2>🥗 Обіди</h2></div>
-    <div id="cnt-obidy"><div class="loading"><div class="spinner"></div><p>Завантаження...</p></div></div>
+    <div class="section-header"><h2>рџҐ— РћР±С–РґРё</h2></div>
+    <div id="cnt-obidy"><div class="loading"><div class="spinner"></div><p>Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ...</p></div></div>
   </div>
   <div class="page" id="page-kafeteriy">
-    <div class="section-header"><h2>☕ Кафетерій</h2></div>
-    <div id="cnt-kafeteriy"><div class="loading"><div class="spinner"></div><p>Завантаження...</p></div></div>
+    <div class="section-header"><h2>в• РљР°С„РµС‚РµСЂС–Р№</h2></div>
+    <div id="cnt-kafeteriy"><div class="loading"><div class="spinner"></div><p>Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ...</p></div></div>
   </div>
 </div>
-<div class="footer">© Катюжанський професійний коледж</div>
+<div class="footer">В© РљР°С‚СЋР¶Р°РЅСЃСЊРєРёР№ РїСЂРѕС„РµСЃС–Р№РЅРёР№ РєРѕР»РµРґР¶</div>
 <script type="module">
 const firebaseConfig = {
   apiKey: "AIzaSyB584GOt9Pf6GA5M2N-Txi0Yk2JmKTRJ-k",
@@ -137,32 +137,34 @@ onValue(ref(db,"cafe/menu"), snap=>{
   if(active&&active.id==="page-kafeteriy") renderSection("kafeteriy");
 });
 
+function toList(v){ return Array.isArray(v) ? v : Object.values(v||{}); }
+
 function renderSection(sid){
   const sec = menuData&&menuData[sid];
   const el = document.getElementById("cnt-"+sid);
-  if(!sec){el.innerHTML='<div class="empty-note">Меню порожнє</div>';return;}
-  const cats = Object.values(sec.categories||{});
-  const dishes = Object.values(sec.dishes||{});
+  if(!sec){el.innerHTML='<div class="empty-note">РњРµРЅСЋ РїРѕСЂРѕР¶РЅС”</div>';return;}
+  const cats = toList(sec.categories);
+  const dishes = toList(sec.dishes);
   let html="";
   cats.forEach(cat=>{
-    const catDishes = dishes.filter(d=>d.category===cat.id&&d.active);
+    const catDishes = dishes.filter(d=>d.category===cat.id&&d.active!==false);
     html+='<div class="category-block"><div class="category-title">'+cat.icon+' '+cat.name+'</div>';
-    if(!catDishes.length){html+='<div class="empty-note">Сьогодні немає страв</div>';}
+    if(!catDishes.length){html+='<div class="empty-note">РЎСЊРѕРіРѕРґРЅС– РЅРµРјР°С” СЃС‚СЂР°РІ</div>';}
     else catDishes.forEach(d=>{
       const img=d.photo?'<img class="dish-img" src="'+d.photo+'">'+'':'<div class="dish-img-placeholder">'+cat.icon+'</div>';
-      html+='<div class="dish-card">'+img+'<div class="dish-info"><div><div class="dish-name">'+d.name+'</div>'+(d.desc?'<div class="dish-desc">'+d.desc+'</div>':'')+'</div><div class="dish-price">'+d.price+' грн</div></div></div>';
+      html+='<div class="dish-card">'+img+'<div class="dish-info"><div><div class="dish-name">'+d.name+'</div>'+(d.desc?'<div class="dish-desc">'+d.desc+'</div>':'')+'</div><div class="dish-price">'+d.price+' РіСЂРЅ</div></div></div>';
     });
     html+='</div>';
   });
-  el.innerHTML=html||'<div class="empty-note">Меню порожнє</div>';
+  el.innerHTML=html||'<div class="empty-note">РњРµРЅСЋ РїРѕСЂРѕР¶РЅС”</div>';
 }
 
 window.openSection=function(sid){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById("page-"+sid).classList.add("active");
   if(menuData) renderSection(sid);
-  const names={obidy:"Обіди",kafeteriy:"Кафетерій"};
-  document.getElementById("bc").innerHTML='<span class="link" onclick="goHome()">Головна</span><span class="sep">›</span><span>'+names[sid]+'</span>';
+  const names={obidy:"РћР±С–РґРё",kafeteriy:"РљР°С„РµС‚РµСЂС–Р№"};
+  document.getElementById("bc").innerHTML='<span class="link" onclick="goHome()">Р“РѕР»РѕРІРЅР°</span><span class="sep">вЂє</span><span>'+names[sid]+'</span>';
   window.scrollTo(0,0);
 };
 window.goHome=function(){
@@ -173,3 +175,4 @@ window.goHome=function(){
 };
 </script>
 </body></html>
+
