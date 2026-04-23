@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>РљСѓС…РЅСЏ вЂ” РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ</title>
+<title>Кухня — Навчальне кафе</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -49,11 +49,11 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 <div class="k-login" id="k-login-screen">
   <div class="k-login-card">
     <img id="k-login-logo" alt="">
-    <h2>РљСѓС…РЅСЏ</h2>
-    <p>РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ РєРѕР»РµРґР¶Сѓ</p>
-    <input class="k-input" type="text" id="k-login-field" placeholder="Р›РѕРіС–РЅ" autocomplete="username" style="margin-bottom:10px">
-    <input class="k-input" type="password" id="k-pwd" placeholder="РџР°СЂРѕР»СЊ" autocomplete="current-password">
-    <button class="k-btn" onclick="doKitchenLogin()">РЈРІС–Р№С‚Рё</button>
+    <h2>Кухня</h2>
+    <p>Навчальне кафе коледжу</p>
+    <input class="k-input" type="text" id="k-login-field" placeholder="Логін" autocomplete="username" style="margin-bottom:10px">
+    <input class="k-input" type="password" id="k-pwd" placeholder="Пароль" autocomplete="current-password">
+    <button class="k-btn" onclick="doKitchenLogin()">Увійти</button>
     <p class="k-err" id="k-err"></p>
   </div>
 </div>
@@ -61,14 +61,14 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 <div class="k-header">
   <div style="display:flex;align-items:center;gap:12px">
     <img id="k-logo" alt="">
-    <div><div class="k-title">РљСѓС…РЅСЏ</div><div class="k-sub">РђРєС‚РёРІРЅС– Р·Р°РјРѕРІР»РµРЅРЅСЏ</div></div>
+    <div><div class="k-title">Кухня</div><div class="k-sub">Активні замовлення</div></div>
   </div>
   <div style="text-align:right">
     <div class="clock" id="clock"></div>
     <div style="color:#8aab8a;font-size:11px;margin-top:2px" id="order-count"></div>
   </div>
 </div>
-<div class="new-badge hidden" id="new-badge">рџ”” РќРѕРІРµ Р·Р°РјРѕРІР»РµРЅРЅСЏ!</div>
+<div class="new-badge hidden" id="new-badge">🔔 Нове замовлення!</div>
 <div id="orders-container"></div>
 </div>
 <script type="module">
@@ -132,14 +132,14 @@ window.doKitchenLogin = async function(){
   errEl.textContent = "";
 
   if(!login || !pwd){
-    errEl.textContent = "Введіть логін і пароль";
+    errEl.textContent = "������ ���� � ������";
     return;
   }
 
   const btn = document.querySelector(".k-btn");
   btn.disabled = true;
   const oldText = btn.textContent;
-  btn.textContent = "Зачекайте...";
+  btn.textContent = "���������...";
 
   try{
     const email = login.includes("@") ? login : (login + DOMAIN);
@@ -149,7 +149,7 @@ window.doKitchenLogin = async function(){
     const u = snap.val();
     if(!u || u.role !== "kitchen"){
       await signOut(auth);
-      throw new Error("Немає доступу для кухні");
+      throw new Error("���� ������� ��� ����");
     }
 
     saveSession(login, u.name || login);
@@ -157,9 +157,9 @@ window.doKitchenLogin = async function(){
   }catch(e){
     const code = e && e.code ? String(e.code) : "";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
-      errEl.textContent = "Невірний логін або пароль";
+      errEl.textContent = "������� ���� ��� ������";
     }else{
-      errEl.textContent = e?.message || "Помилка входу";
+      errEl.textContent = e?.message || "������� �����";
     }
     console.error(e);
   }finally{
@@ -191,11 +191,11 @@ onValue(ref(db, "cafe/orders"), snap=>{
   }
   lastIds = currentIds;
 
-  document.getElementById("order-count").textContent = orders.length + " активних замовлень";
+  document.getElementById("order-count").textContent = orders.length + " �������� ���������";
   const container = document.getElementById("orders-container");
 
   if(!orders.length){
-    container.innerHTML = '<div class="empty-kitchen"><div class="empty-icon">👨‍🍳</div><div class="empty-txt">Нових замовлень немає</div><div style="margin-top:8px;font-size:14px;color:#5a7a5a">Очікування замовлень...</div></div>';
+    container.innerHTML = '<div class="empty-kitchen"><div class="empty-icon">👨‍🍳</div><div class="empty-txt">����� ��������� ����</div><div style="margin-top:8px;font-size:14px;color:#5a7a5a">���������� ���������...</div></div>';
     return;
   }
 
@@ -204,11 +204,11 @@ onValue(ref(db, "cafe/orders"), snap=>{
     const dt = new Date(o.createdAt || Date.now());
     const time = dt.toLocaleTimeString("uk-UA", {hour:"2-digit", minute:"2-digit"});
     const mins = Math.floor((Date.now() - dt.getTime()) / 60000);
-    const timeLabel = mins < 1 ? "щойно" : (mins + " хв тому");
+    const timeLabel = mins < 1 ? "�����" : (mins + " �� ����");
 
     html += `<div class="order-card">
       <div class="order-card-hdr">
-        <div><div class="order-table">Стіл №${o.table ?? "-"}</div><div class="order-waiter">${o.waiterName || ""}</div></div>
+        <div><div class="order-table">��� �${o.table ?? "-"}</div><div class="order-waiter">${o.waiterName || ""}</div></div>
         <div class="order-time">${time}<br><span style="font-size:11px;opacity:.8">${timeLabel}</span></div>
       </div>
       <div class="order-items">`;
@@ -217,7 +217,7 @@ onValue(ref(db, "cafe/orders"), snap=>{
       html += `<div class="order-item"><span class="order-item-name">${i.name || ""}</span><span class="order-item-qty">× ${i.qty || 1}</span></div>`;
     });
 
-    html += `</div><div class="order-footer"><button class="close-btn" onclick="closeOrder('${o.id}')">✓ Виконано / Подано</button></div></div>`;
+    html += `</div><div class="order-footer"><button class="close-btn" onclick="closeOrder('${o.id}')">✓ �������� / ������</button></div></div>`;
   });
   html += '</div>';
   container.innerHTML = html;
@@ -237,7 +237,7 @@ setInterval(updateClock, 1000);
 
 const saved = loadSession();
 if(saved){
-  startKitchenApp(saved.name || saved.login || "Кухня");
+  startKitchenApp(saved.name || saved.login || "�����");
 }
 
 document.getElementById("k-pwd").addEventListener("keydown", e=>{

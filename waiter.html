@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>РћС„С–С†С–Р°РЅС‚ вЂ” РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ</title>
+<title>Офіціант — Навчальне кафе</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 
@@ -76,53 +76,53 @@ body{font-family:"Nunito",sans-serif;background:var(--bg);color:var(--text);min-
 <div class="login-wrap" id="login-screen">
   <div class="login-card">
     <img id="login-logo" alt="">
-    <h2>РћС„С–С†С–Р°РЅС‚</h2><p>РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ РєРѕР»РµРґР¶Сѓ</p>
-    <div class="field"><label>Р›РѕРіС–РЅ</label><input class="input" id="login-input" placeholder="waiter1"></div>
-    <div class="field"><label>РџР°СЂРѕР»СЊ</label><input class="input" type="password" id="pwd-input" placeholder="РџР°СЂРѕР»СЊ"></div>
-    <button class="btn btn-green btn-full" onclick="doLogin()">РЈРІС–Р№С‚Рё</button>
+    <h2>Офіціант</h2><p>Навчальне кафе коледжу</p>
+    <div class="field"><label>Логін</label><input class="input" id="login-input" placeholder="waiter1"></div>
+    <div class="field"><label>Пароль</label><input class="input" type="password" id="pwd-input" placeholder="Пароль"></div>
+    <button class="btn btn-green btn-full" onclick="doLogin()">Увійти</button>
     <p class="err" id="lerr"></p>
   </div>
 </div>
 <div style="display:none" id="app-screen">
   <div class="header">
     <img id="app-logo" alt="">
-    <div class="header-text"><h1 id="waiter-name">РћС„С–С†С–Р°РЅС‚</h1><p>РћС„РѕСЂРјР»РµРЅРЅСЏ Р·Р°РјРѕРІР»РµРЅРЅСЏ</p></div>
-    <button class="btn btn-sm btn-outline" onclick="doLogout()" style="margin-left:auto">Р’РёР№С‚Рё</button>
+    <div class="header-text"><h1 id="waiter-name">Офіціант</h1><p>Оформлення замовлення</p></div>
+    <button class="btn btn-sm btn-outline" onclick="doLogout()" style="margin-left:auto">Вийти</button>
   </div>
   <div class="container" style="padding-bottom:90px">
     <div class="page active" id="pg-menu">
       <div class="section-tab-wrap" style="margin-top:8px">
-        <button class="section-tab active" onclick="switchSection('obidy',this)">рџҐ— РћР±С–РґРё</button>
-        <button class="section-tab" onclick="switchSection('kafeteriy',this)">в• РљР°С„РµС‚РµСЂС–Р№</button>
+        <button class="section-tab active" onclick="switchSection('obidy',this)">🥗 Обіди</button>
+        <button class="section-tab" onclick="switchSection('kafeteriy',this)">☕ Кафетерій</button>
       </div>
       <div id="menu-content"></div>
     </div>
     <div class="page" id="pg-confirm">
-      <h2 style="font-size:20px;font-weight:800;margin:16px 0 12px">РџС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ Р·Р°РјРѕРІР»РµРЅРЅСЏ</h2>
+      <h2 style="font-size:20px;font-weight:800;margin:16px 0 12px">Підтвердження замовлення</h2>
       <div style="background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)" id="order-summary"></div>
-      <div style="font-size:14px;font-weight:800;margin-bottom:8px">РћР±РµСЂС–С‚СЊ СЃС‚РѕР»РёРє:</div>
+      <div style="font-size:14px;font-weight:800;margin-bottom:8px">Оберіть столик:</div>
       <div class="table-grid" id="table-grid"></div>
       <div id="confirm-err" class="err"></div>
       <div style="display:flex;gap:10px;margin-top:16px">
-        <button class="btn btn-outline" style="flex:1" onclick="backToMenu()">в†ђ РќР°Р·Р°Рґ</button>
-        <button class="btn btn-green" style="flex:1" onclick="submitOrder()">Р’С–РґРїСЂР°РІРёС‚Рё РЅР° РєСѓС…РЅСЋ</button>
+        <button class="btn btn-outline" style="flex:1" onclick="backToMenu()">← Назад</button>
+        <button class="btn btn-green" style="flex:1" onclick="submitOrder()">Відправити на кухню</button>
       </div>
     </div>
     <div class="page" id="pg-success">
       <div class="success-screen">
-        <div class="success-icon">вњ…</div>
-        <h2 style="font-size:22px;font-weight:800;margin-bottom:8px">Р—Р°РјРѕРІР»РµРЅРЅСЏ РІС–РґРїСЂР°РІР»РµРЅРѕ!</h2>
-        <p style="color:var(--muted);margin-bottom:24px">РљСѓС…РЅСЏ РѕС‚СЂРёРјР°Р»Р° Р·Р°РјРѕРІР»РµРЅРЅСЏ</p>
-        <button class="btn btn-green btn-full" onclick="newOrder()">РќРѕРІРµ Р·Р°РјРѕРІР»РµРЅРЅСЏ</button>
+        <div class="success-icon">✅</div>
+        <h2 style="font-size:22px;font-weight:800;margin-bottom:8px">Замовлення відправлено!</h2>
+        <p style="color:var(--muted);margin-bottom:24px">Кухня отримала замовлення</p>
+        <button class="btn btn-green btn-full" onclick="newOrder()">Нове замовлення</button>
       </div>
     </div>
   </div>
   <div class="cart-bar" id="cart-bar" style="display:none">
     <div style="flex:1">
-      <div style="font-weight:800;color:var(--green)" id="cart-count">0 РїРѕР·РёС†С–Р№</div>
-      <div style="font-size:12px;color:var(--muted)" id="cart-total">0 РіСЂРЅ</div>
+      <div style="font-weight:800;color:var(--green)" id="cart-count">0 позицій</div>
+      <div style="font-size:12px;color:var(--muted)" id="cart-total">0 грн</div>
     </div>
-    <button class="btn btn-green" onclick="goConfirm()">РћС„РѕСЂРјРёС‚Рё в†’</button>
+    <button class="btn btn-green" onclick="goConfirm()">Оформити →</button>
   </div>
 </div>
 <script type="module">
@@ -193,13 +193,13 @@ window.doLogin=async function(){
   errEl.textContent="";
 
   if(!login||!pwd){
-    errEl.textContent="Введіть логін і пароль";
+    errEl.textContent="������ ���� � ������";
     return;
   }
 
   const btn=document.querySelector(".btn.btn-green.btn-full");
   const oldText=btn?btn.textContent:"";
-  if(btn){btn.disabled=true;btn.textContent="Зачекайте...";}
+  if(btn){btn.disabled=true;btn.textContent="���������...";}
 
   const email=(login.includes("@"))?login:(login+"@cafe-kpk.com");
 
@@ -211,7 +211,7 @@ window.doLogin=async function(){
 
     if(!u||u.role!=="waiter"){
       await signOut(auth);
-      errEl.textContent="Немає доступу для офіціанта";
+      errEl.textContent="���� ������� ��� ��������";
       return;
     }
 
@@ -222,9 +222,9 @@ window.doLogin=async function(){
     console.error(e);
     const code=e&&e.code?String(e.code):"";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
-      errEl.textContent="Невірний логін або пароль";
+      errEl.textContent="������� ���� ��� ������";
     }else{
-      errEl.textContent=e.code?`Помилка входу: ${e.code}`:"Невірний пароль або email";
+      errEl.textContent=e.code?`������� �����: ${e.code}`:"������� ������ ��� email";
     }
   }finally{
     if(btn){btn.disabled=false;btn.textContent=oldText;}
@@ -252,7 +252,7 @@ function toList(v){ return Array.isArray(v) ? v : Object.values(v||{}); }
 function renderMenu(sid){
   const sec=menuData[sid];
   const el=document.getElementById("menu-content");
-  if(!sec){el.innerHTML='<div style="text-align:center;padding:40px;color:#bbb">РњРµРЅСЋ Р·Р°РІР°РЅС‚Р°Р¶СѓС”С‚СЊСЃСЏ...</div>';return;}
+  if(!sec){el.innerHTML='<div style="text-align:center;padding:40px;color:#bbb">Меню завантажується...</div>';return;}
   const cats=toList(sec.categories);
   const dishes=toList(sec.dishes);
   let html="";let hasAny=false;
@@ -267,16 +267,16 @@ function renderMenu(sid){
       const thumb=d.photo?'<div class="dish-sel-thumb"><img src="'+d.photo+'"></div>':'<div class="dish-sel-thumb">'+cat.icon+'</div>';
       html+=`<div class="dish-sel ${sel}" id="drow-${d.id}">
         ${thumb}
-        <div class="dish-sel-info"><div class="dish-sel-name">${d.name}</div><div class="dish-sel-price">${d.price} РіСЂРЅ</div></div>
+        <div class="dish-sel-info"><div class="dish-sel-name">${d.name}</div><div class="dish-sel-price">${d.price} грн</div></div>
         <div class="qty-ctrl">
-          <button class="qty-btn" onclick="changeQty('${d.id}',-1,event)">в€’</button>
+          <button class="qty-btn" onclick="changeQty('${d.id}',-1,event)">−</button>
           <span class="qty-num" id="qty-${d.id}">${qty}</span>
           <button class="qty-btn" onclick="changeQty('${d.id}',1,event)">+</button>
         </div>
       </div>`;
     });
   });
-  if(!hasAny)html='<div style="text-align:center;padding:40px;color:#bbb">РђРєС‚РёРІРЅРёС… СЃС‚СЂР°РІ РЅРµРјР°С”</div>';
+  if(!hasAny)html='<div style="text-align:center;padding:40px;color:#bbb">Активних страв немає</div>';
   el.innerHTML=html;
 }
 
@@ -296,8 +296,8 @@ function updateCartBar(){
   const total=items.reduce((s,i)=>s+parseFloat(i.price)*i.qty,0);
   const count=items.reduce((s,i)=>s+i.qty,0);
   document.getElementById("cart-bar").style.display=count>0?"flex":"none";
-  document.getElementById("cart-count").textContent=count+" РїРѕР·РёС†С–Р№";
-  document.getElementById("cart-total").textContent=total.toFixed(2)+" РіСЂРЅ";
+  document.getElementById("cart-count").textContent=count+" позицій";
+  document.getElementById("cart-total").textContent=total.toFixed(2)+" грн";
 }
 
 function getCartItems(){
@@ -317,9 +317,9 @@ window.goConfirm=function(){
   let html="";let total=0;
   items.forEach(i=>{
     const sub=parseFloat(i.price)*i.qty;total+=sub;
-    html+=`<div class="order-item-row"><span>${i.name} Г— ${i.qty}</span><span style="font-weight:700">${sub.toFixed(2)} РіСЂРЅ</span></div>`;
+    html+=`<div class="order-item-row"><span>${i.name} × ${i.qty}</span><span style="font-weight:700">${sub.toFixed(2)} грн</span></div>`;
   });
-  html+=`<div style="padding-top:10px;font-weight:800;display:flex;justify-content:space-between"><span>Р Р°Р·РѕРј</span><span>${total.toFixed(2)} РіСЂРЅ</span></div>`;
+  html+=`<div style="padding-top:10px;font-weight:800;display:flex;justify-content:space-between"><span>Разом</span><span>${total.toFixed(2)} грн</span></div>`;
   document.getElementById("order-summary").innerHTML=html;
   renderTableGrid();
 };
@@ -329,7 +329,7 @@ function renderTableGrid(){
   let html="";
   for(let i=1;i<=7;i++){
     const busy=busyTables.includes(i);
-    html+=`<button class="table-btn${busy?" busy":""}" onclick="selectTable(${i},this)">${busy?"рџ”ґ ":""}РЎС‚С–Р» ${i}</button>`;
+    html+=`<button class="table-btn${busy?" busy":""}" onclick="selectTable(${i},this)">${busy?"🔴 ":""}Стіл ${i}</button>`;
   }
   document.getElementById("table-grid").innerHTML=html;
   selectedTable=null;
@@ -343,7 +343,7 @@ window.selectTable=function(n,btn){
 };
 
 window.submitOrder=async function(){
-  if(!selectedTable){document.getElementById("confirm-err").textContent="РћР±РµСЂС–С‚СЊ СЃС‚РѕР»РёРє";return;}
+  if(!selectedTable){document.getElementById("confirm-err").textContent="Оберіть столик";return;}
   const items=getCartItems();
   const orderId="ord_"+Date.now();
   await set(ref(db,"cafe/orders/"+orderId),{
