@@ -193,13 +193,13 @@ window.doLogin=async function(){
   errEl.textContent="";
 
   if(!login||!pwd){
-    errEl.textContent="������ ���� � ������";
+    errEl.textContent="Введіть логін і пароль";
     return;
   }
 
   const btn=document.querySelector(".btn.btn-green.btn-full");
   const oldText=btn?btn.textContent:"";
-  if(btn){btn.disabled=true;btn.textContent="���������...";}
+  if(btn){btn.disabled=true;btn.textContent="Входимо...";}
 
   const email=(login.includes("@"))?login:(login+"@cafe-kpk.com");
 
@@ -211,7 +211,7 @@ window.doLogin=async function(){
 
     if(!u||u.role!=="waiter"){
       await signOut(auth);
-      errEl.textContent="���� ������� ��� ��������";
+      errEl.textContent="Немає доступу для офіціанта";
       return;
     }
 
@@ -222,9 +222,9 @@ window.doLogin=async function(){
     console.error(e);
     const code=e&&e.code?String(e.code):"";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
-      errEl.textContent="������� ���� ��� ������";
+      errEl.textContent="Невірний логін або пароль";
     }else{
-      errEl.textContent=e.code?`������� �����: ${e.code}`:"������� ������ ��� email";
+      errEl.textContent=e.code?`Помилка входу: ${e.code}`:"Помилка входу або email";
     }
   }finally{
     if(btn){btn.disabled=false;btn.textContent=oldText;}

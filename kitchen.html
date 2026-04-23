@@ -132,14 +132,14 @@ window.doKitchenLogin = async function(){
   errEl.textContent = "";
 
   if(!login || !pwd){
-    errEl.textContent = "������ ���� � ������";
+    errEl.textContent = "Введіть логін і пароль";
     return;
   }
 
   const btn = document.querySelector(".k-btn");
   btn.disabled = true;
   const oldText = btn.textContent;
-  btn.textContent = "���������...";
+  btn.textContent = "Входимо...";
 
   try{
     const email = login.includes("@") ? login : (login + DOMAIN);
@@ -149,7 +149,7 @@ window.doKitchenLogin = async function(){
     const u = snap.val();
     if(!u || u.role !== "kitchen"){
       await signOut(auth);
-      throw new Error("���� ������� ��� ����");
+      throw new Error("Немає доступу для кухні");
     }
 
     saveSession(login, u.name || login);
@@ -157,9 +157,9 @@ window.doKitchenLogin = async function(){
   }catch(e){
     const code = e && e.code ? String(e.code) : "";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
-      errEl.textContent = "������� ���� ��� ������";
+      errEl.textContent = "Невірний логін або пароль";
     }else{
-      errEl.textContent = e?.message || "������� �����";
+      errEl.textContent = e?.message || "Помилка входу";
     }
     console.error(e);
   }finally{
@@ -191,11 +191,11 @@ onValue(ref(db, "cafe/orders"), snap=>{
   }
   lastIds = currentIds;
 
-  document.getElementById("order-count").textContent = orders.length + " �������� ���������";
+  document.getElementById("order-count").textContent = orders.length + " активних замовлень";
   const container = document.getElementById("orders-container");
 
   if(!orders.length){
-    container.innerHTML = '<div class="empty-kitchen"><div class="empty-icon">👨‍🍳</div><div class="empty-txt">����� ��������� ����</div><div style="margin-top:8px;font-size:14px;color:#5a7a5a">���������� ���������...</div></div>';
+    container.innerHTML = '<div class="empty-kitchen"><div class="empty-icon">👨‍🍳</div><div class="empty-txt">Немає активних замовлень</div><div style="margin-top:8px;font-size:14px;color:#5a7a5a">Очікуємо нові замовлення...</div></div>';
     return;
   }
 
@@ -204,11 +204,11 @@ onValue(ref(db, "cafe/orders"), snap=>{
     const dt = new Date(o.createdAt || Date.now());
     const time = dt.toLocaleTimeString("uk-UA", {hour:"2-digit", minute:"2-digit"});
     const mins = Math.floor((Date.now() - dt.getTime()) / 60000);
-    const timeLabel = mins < 1 ? "�����" : (mins + " �� ����");
+    const timeLabel = mins < 1 ? "Щойно" : (mins + " хв тому");
 
     html += `<div class="order-card">
       <div class="order-card-hdr">
-        <div><div class="order-table">��� �${o.table ?? "-"}</div><div class="order-waiter">${o.waiterName || ""}</div></div>
+        <div><div class="order-table">Стіл №${o.table ?? "-"}</div><div class="order-waiter">${o.waiterName || ""}</div></div>
         <div class="order-time">${time}<br><span style="font-size:11px;opacity:.8">${timeLabel}</span></div>
       </div>
       <div class="order-items">`;
@@ -217,7 +217,7 @@ onValue(ref(db, "cafe/orders"), snap=>{
       html += `<div class="order-item"><span class="order-item-name">${i.name || ""}</span><span class="order-item-qty">× ${i.qty || 1}</span></div>`;
     });
 
-    html += `</div><div class="order-footer"><button class="close-btn" onclick="closeOrder('${o.id}')">✓ �������� / ������</button></div></div>`;
+    html += `</div><div class="order-footer"><button class="close-btn" onclick="closeOrder('${o.id}')">✓ Готово / Видати</button></div></div>`;
   });
   html += '</div>';
   container.innerHTML = html;
@@ -237,7 +237,7 @@ setInterval(updateClock, 1000);
 
 const saved = loadSession();
 if(saved){
-  startKitchenApp(saved.name || saved.login || "�����");
+  startKitchenApp(saved.name || saved.login || "Кухня");
 }
 
 document.getElementById("k-pwd").addEventListener("keydown", e=>{
