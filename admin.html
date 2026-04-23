@@ -178,9 +178,29 @@ async function initDB(){
 }
 
 async function checkIsAdmin(uid){
-  const snap = await get(ref(db,`cafe/admins/${uid}`));
-  const v = snap.val();
-  return v === true || v === "true" || v === 1 || v === "1";
+  // 1) Legacy mode: cafe/admins/{uid}: true
+  try{
+    const adminsSnap = await get(ref(db,`cafe/admins/${uid}`));
+    const v = adminsSnap.val();
+    if(
+      v === true ||
+      v === "true" ||
+      v === 1 ||
+      v === "1" ||
+      (typeof v === "object" && String(v?.role || "").toLowerCase() === "admin")
+    ){
+      return true;
+    }
+  }catch(_e){}
+
+  // 2) Clean mode: cafe/staff/{uid}/role: "admin"
+  try{
+    const roleSnap = await get(ref(db,`cafe/staff/${uid}/role`));
+    const role = String(roleSnap.val() || "").toLowerCase();
+    if(role === "admin") return true;
+  }catch(_e){}
+
+  return false;
 }
 
 function attachListeners(){
