@@ -89,12 +89,10 @@ body{font-family:"Nunito",sans-serif;background:var(--bg);color:var(--text);min-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('obidy',this)">🥗 Обіди</button>
     <button class="tab" onclick="switchTab('kafeteriy',this)">☕ Кафетерій</button>
-    <button class="tab" onclick="switchTab('users',this)">👤 Офіціанти</button>
     <button class="tab" onclick="switchTab('history',this)">📋 Історія</button>
   </div>
   <div class="tc active" id="tc-obidy"></div>
   <div class="tc" id="tc-kafeteriy"></div>
-  <div class="tc" id="tc-users"></div>
   <div class="tc" id="tc-history"></div>
 </div>
 
@@ -136,7 +134,7 @@ const firebaseConfig = {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -154,9 +152,10 @@ const DEFAULT_USERS = {
 };
 
 let menuData = {};
-let usersData = {};
 let ordersData = {};
 let isAdmin = false;
+let historyFilterDate = "";
+const historySelectedIds = new Set();
 
 function esc(v){
   return String(v ?? "")
@@ -205,8 +204,11 @@ async function checkIsAdmin(uid){
 
 function attachListeners(){
   onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};renderAll();});
-  onValue(ref(db,"cafe/users"),snap=>{usersData=snap.val()||{};renderUsers();});
-  onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
+  onValue(ref(db,"cafe/orders"),snap=>{
+    ordersData=snap.val()||{};
+    const activeTab = document.querySelector(".tab.active");
+    if(activeTab && activeTab.textContent.includes("Історія")) renderHistory();
+  });
 }
 
 function startAdminApp(){
@@ -328,37 +330,46 @@ function renderTab(sid){
   el.innerHTML=html;
 }
 
-function renderUsers(){
-  const el=document.getElementById("tc-users");if(!el)return;
-  let html='<div class="cat-block">';
-
-  Object.entries(usersData||{}).forEach(([k,u])=>{
-    if(u?.role!=="waiter")return;
-    html+=`<div class="user-row">
-      <div class="user-avatar">👤</div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:800">${esc(u.name||k)}</div>
-        <div style="font-size:12px;color:var(--muted)">Логін: ${esc(k)} · ${esc(u.email||"email не задано")}</div>
-      </div>
-      <button class="btn btn-sm btn-outline" onclick="resetWaiterPassword('${esc(u.email||"")}')">Скинути пароль</button>
-    </div>`;
-  });
-
-  html+='</div><div class="small-note">Паролі офіціантів не зберігаються в Realtime DB. Кнопка надсилає лист для скидання пароля у Firebase Auth.</div>';
-  el.innerHTML=html;
-}
-
 function renderHistory(){
   const el=document.getElementById("tc-history");if(!el)return;
-  const orders=Object.values(ordersData||{}).filter(o=>o.status==="closed").reverse();
-  if(!orders.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#bbb">Замовлень ще немає</div>';return;}
-  let html="";
-  orders.forEach(o=>{
+  const orders=Object.values(ordersData||{})
+    .filter(o=>o.status==="closed")
+    .sort((a,b)=>new Date(b.closedAt||b.createdAt||0)-new Date(a.closedAt||a.createdAt||0));
+
+  const byDate = historyFilterDate
+    ? orders.filter(o=>toLocalDateStr(o.closedAt||o.createdAt)===historyFilterDate)
+    : orders;
+
+  let html=`<div class="cat-block" style="padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+    <input class="input" type="date" id="history-date" value="${esc(historyFilterDate)}" style="max-width:190px">
+    <button class="btn btn-sm btn-outline" onclick="applyHistoryDate()">Фільтрувати</button>
+    <button class="btn btn-sm btn-outline" onclick="clearHistoryDate()">Скинути</button>
+    <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:none" onclick="deleteSelectedHistory()">Видалити вибрані</button>
+    <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:none" onclick="deleteFilteredHistory()">Видалити за фільтром</button>
+  </div>`;
+
+  if(!byDate.length){
+    html+='<div style="text-align:center;padding:40px;color:#bbb">Записів за вибраний період немає</div>';
+    el.innerHTML=html;
+    return;
+  }
+
+  byDate.forEach(o=>{
+    const oid = String(o.id||"");
     const dt=new Date(o.createdAt||Date.now());
     const time=dt.toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
     const total=(o.items||[]).reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||0),0);
     html+=`<div class="history-item">
-      <div class="history-hdr"><span style="font-weight:800">Стіл №${esc(o.table||"?")}</span><span class="badge badge-green">Виконано</span></div>
+      <div class="history-hdr">
+        <label style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" ${historySelectedIds.has(oid)?"checked":""} onchange="toggleHistorySelect('${esc(oid)}',this.checked)">
+          <span style="font-weight:800">Стіл №${esc(o.table||"?")}</span>
+        </label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge badge-green">Виконано</span>
+          <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:none" onclick="deleteOneHistory('${esc(oid)}')">✕</button>
+        </div>
+      </div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${esc(time)} · ${esc(o.waiterName||"Офіціант")}</div>`;
     (o.items||[]).forEach(i=>{html+=`<div style="font-size:13px;display:flex;justify-content:space-between;padding:3px 0"><span>${esc(i.name)} × ${esc(i.qty)}</span><span style="font-weight:700">${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} грн</span></div>`;});
     html+=`<div style="border-top:1px solid #eee;margin-top:8px;padding-top:8px;font-weight:800;display:flex;justify-content:space-between"><span>Разом</span><span>${total.toFixed(2)} грн</span></div></div>`;
@@ -372,7 +383,6 @@ window.switchTab=function(sid,btn){
   btn.classList.add("active");
   document.getElementById("tc-"+sid).classList.add("active");
   if(sid==="history")renderHistory();
-  if(sid==="users")renderUsers();
 };
 
 window.addCat=async function(sid){
@@ -409,15 +419,59 @@ window.deleteDish=async function(sid,dishId){
   showToast();
 };
 
-window.resetWaiterPassword = async function(email){
-  if(!email){alert("У профілі офіціанта не вказаний email");return;}
-  try{
-    await sendPasswordResetEmail(auth, email);
-    alert("Лист для скидання пароля надіслано: " + email);
-  }catch(err){
-    console.error(err);
-    alert("Не вдалося надіслати лист. Перевірте email та наявність такого користувача в Firebase Auth.");
-  }
+function toLocalDateStr(isoLike){
+  const d = new Date(isoLike||Date.now());
+  if(Number.isNaN(d.getTime())) return "";
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+window.applyHistoryDate = function(){
+  const inp=document.getElementById("history-date");
+  historyFilterDate = inp?.value || "";
+  renderHistory();
+};
+
+window.clearHistoryDate = function(){
+  historyFilterDate = "";
+  renderHistory();
+};
+
+window.toggleHistorySelect = function(orderId, checked){
+  if(checked) historySelectedIds.add(orderId);
+  else historySelectedIds.delete(orderId);
+};
+
+window.deleteOneHistory = async function(orderId){
+  if(!confirm("Видалити цей запис з історії?")) return;
+  await remove(ref(db,`cafe/orders/${orderId}`));
+  historySelectedIds.delete(orderId);
+  showToast();
+};
+
+window.deleteSelectedHistory = async function(){
+  const ids=[...historySelectedIds];
+  if(!ids.length){alert("Немає вибраних записів.");return;}
+  if(!confirm(`Видалити ${ids.length} вибраних записів?`)) return;
+  for(const id of ids) await remove(ref(db,`cafe/orders/${id}`));
+  historySelectedIds.clear();
+  showToast();
+};
+
+window.deleteFilteredHistory = async function(){
+  const orders=Object.values(ordersData||{}).filter(o=>o.status==="closed");
+  const ids=(historyFilterDate
+    ? orders.filter(o=>toLocalDateStr(o.closedAt||o.createdAt)===historyFilterDate)
+    : orders
+  ).map(o=>String(o.id||"")).filter(Boolean);
+
+  if(!ids.length){alert("Немає записів для видалення.");return;}
+  if(!confirm(`Видалити ${ids.length} записів${historyFilterDate?` за ${historyFilterDate}`:""}?`)) return;
+  for(const id of ids) await remove(ref(db,`cafe/orders/${id}`));
+  ids.forEach(id=>historySelectedIds.delete(id));
+  showToast();
 };
 
 let _sid="",_catId="",_dishId="",_photo="",_editActive=true;
