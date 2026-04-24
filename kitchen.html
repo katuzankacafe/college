@@ -228,33 +228,29 @@ function playNewOrderSound(){
     if(audioCtx.state === "suspended") audioCtx.resume();
 
     const start = audioCtx.currentTime;
-    const end = start + 3.0; // ~3 секунди
 
-    // Старий телефон: два тони, що чергуються короткими імпульсами
-    const freqs = [440, 480];
-    const pulseOn = 0.35;
-    const pulseOff = 0.15;
+    function bell(at){
+      const freqs = [1046.5, 1318.5, 1568]; // C6, E6, G6
+      freqs.forEach((f, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-    let t = start;
-    let idx = 0;
-    while(t < end){
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(f, at);
 
-      osc.type = "square";
-      osc.frequency.setValueAtTime(freqs[idx % 2], t);
+        const peak = i === 0 ? 0.22 : (i === 1 ? 0.12 : 0.08);
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(peak, at + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.35);
 
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, Math.min(t + pulseOn, end));
-
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(t);
-      osc.stop(Math.min(t + pulseOn, end));
-
-      t += pulseOn + pulseOff;
-      idx++;
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(at);
+        osc.stop(at + 0.36);
+      });
     }
+
+    bell(start);        // Дзинь
+    bell(start + 0.55); // Дзинь
   }catch(e){
     console.warn("Sound notification failed:", e);
   }
@@ -328,6 +324,7 @@ document.getElementById("k-pwd").addEventListener("keydown", e=>{
 });
 </script>
 </body></html>
+
 
 
 
