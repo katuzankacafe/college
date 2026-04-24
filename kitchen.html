@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>РљСѓС…РЅСЏ вЂ” РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ</title>
+<title>Кухня — Навчальне кафе</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -49,11 +49,11 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 <div class="k-login" id="k-login-screen">
   <div class="k-login-card">
     <img id="k-login-logo" alt="">
-    <h2>РљСѓС…РЅСЏ</h2>
-    <p>РќР°РІС‡Р°Р»СЊРЅРµ РєР°С„Рµ РєРѕР»РµРґР¶Сѓ</p>
-    <input class="k-input" type="text" id="k-login-field" placeholder="Р›РѕРіС–РЅ" autocomplete="username" style="margin-bottom:10px">
-    <input class="k-input" type="password" id="k-pwd" placeholder="РџР°СЂРѕР»СЊ" autocomplete="current-password">
-    <button class="k-btn" onclick="doKitchenLogin()">РЈРІС–Р№С‚Рё</button>
+    <h2>Кухня</h2>
+    <p>Навчальне кафе коледжу</p>
+    <input class="k-input" type="text" id="k-login-field" placeholder="Логін" autocomplete="username" style="margin-bottom:10px">
+    <input class="k-input" type="password" id="k-pwd" placeholder="Пароль" autocomplete="current-password">
+    <button class="k-btn" onclick="doKitchenLogin()">Увійти</button>
     <p class="k-err" id="k-err"></p>
   </div>
 </div>
@@ -61,14 +61,14 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 <div class="k-header">
   <div style="display:flex;align-items:center;gap:12px">
     <img id="k-logo" alt="">
-    <div><div class="k-title">РљСѓС…РЅСЏ</div><div class="k-sub">РђРєС‚РёРІРЅС– Р·Р°РјРѕРІР»РµРЅРЅСЏ</div></div>
+    <div><div class="k-title">Кухня</div><div class="k-sub">Активні замовлення</div></div>
   </div>
   <div style="text-align:right">
     <div class="clock" id="clock"></div>
     <div style="color:#8aab8a;font-size:11px;margin-top:2px" id="order-count"></div>
   </div>
 </div>
-<div class="new-badge hidden" id="new-badge">рџ”” РќРѕРІРµ Р·Р°РјРѕРІР»РµРЅРЅСЏ!</div>
+<div class="new-badge hidden" id="new-badge">🔔 Нове замовлення!</div>
 <div id="orders-container"></div>
 </div>
 <script>
@@ -143,14 +143,14 @@ window.__doKitchenLogin = async function(){
   }
 
   if(!login || !pwd){
-    errEl.textContent = "Р’РІРµРґС–С‚СЊ Р»РѕРіС–РЅ С– РїР°СЂРѕР»СЊ";
+    errEl.textContent = "Введіть логін і пароль";
     return;
   }
 
   const btn = document.querySelector(".k-btn");
   btn.disabled = true;
   const oldText = btn.textContent;
-  btn.textContent = "Р’С…РѕРґРёРјРѕ...";
+  btn.textContent = "Входимо...";
 
   try{
     const email = login.includes("@") ? login : (login + DOMAIN);
@@ -176,12 +176,12 @@ window.__doKitchenLogin = async function(){
     // Fallback: allow only kitchen auth account by email local-part
     if(!roleOk && loginKey === "kitchen"){
       roleOk = true;
-      displayName = "РљСѓС…РЅСЏ";
+      displayName = "Кухня";
     }
 
     if(!roleOk){
       await signOut(auth);
-      throw new Error("РќРµРјР°С” РґРѕСЃС‚СѓРїСѓ РґР»СЏ РєСѓС…РЅС–");
+      throw new Error("Немає доступу для кухні");
     }
 
     saveSession(loginKey, displayName);
@@ -189,16 +189,16 @@ window.__doKitchenLogin = async function(){
   }catch(e){
     const code = e && e.code ? String(e.code) : "";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
-      errEl.textContent = "РќРµРІС–СЂРЅРёР№ Р»РѕРіС–РЅ Р°Р±Рѕ РїР°СЂРѕР»СЊ" + (code ? " (" + code + ")" : "");
+      errEl.textContent = "Невірний логін або пароль" + (code ? " (" + code + ")" : "");
     }else if(code === "auth/unauthorized-domain"){
-      errEl.textContent = "Р”РѕРјРµРЅ РЅРµ РґРѕР·РІРѕР»РµРЅРёР№ Сѓ Firebase Auth. Р”РѕРґР°Р№С‚Рµ Р№РѕРіРѕ РІ Authorized domains." + (code ? " (" + code + ")" : "");
+      errEl.textContent = "Домен не дозволений у Firebase Auth. Додайте його в Authorized domains." + (code ? " (" + code + ")" : "");
     }else if(code === "auth/network-request-failed"){
-      errEl.textContent = "РџРѕРјРёР»РєР° РјРµСЂРµР¶С–. РџРµСЂРµРІС–СЂС‚Рµ С–РЅС‚РµСЂРЅРµС‚ С‚Р° РґРѕСЃС‚СѓРї РґРѕ Firebase." + (code ? " (" + code + ")" : "");
+      errEl.textContent = "Помилка мережі. Перевірте інтернет та доступ до Firebase." + (code ? " (" + code + ")" : "");
     }else{
       errEl.textContent = "Login failed" + (code ? " (" + code + ")" : "") + ".";
     }
     if(location.protocol === "file:"){
-      errEl.textContent = "Р’С–РґРєСЂРёР№С‚Рµ СЃС‚РѕСЂС–РЅРєСѓ С‡РµСЂРµР· http://localhost (РЅРµ file://) РґР»СЏ РєРѕСЂРµРєС‚РЅРѕРіРѕ Firebase РІС…РѕРґСѓ.";
+      errEl.textContent = "Відкрийте сторінку через http://localhost (не file://) для коректного Firebase входу.";
     }
     console.error(e);
   }finally{
@@ -227,29 +227,34 @@ function playNewOrderSound(){
     }
     if(audioCtx.state === "suspended") audioCtx.resume();
 
-    const now = audioCtx.currentTime;
-    const duration = 1.5; // 1.5 секунди
+    const start = audioCtx.currentTime;
+    const end = start + 3.0; // ~3 секунди
 
-    // "Дзвінок": основний тон + обертони
-    const freqs = [880, 1320, 1760];
-    freqs.forEach((freq, i) => {
+    // Старий телефон: два тони, що чергуються короткими імпульсами
+    const freqs = [440, 480];
+    const pulseOn = 0.35;
+    const pulseOff = 0.15;
+
+    let t = start;
+    let idx = 0;
+    while(t < end){
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now);
+      osc.type = "square";
+      osc.frequency.setValueAtTime(freqs[idx % 2], t);
 
-      // Трохи різна гучність для обертонів
-      const peak = i === 0 ? 0.22 : (i === 1 ? 0.12 : 0.07);
-
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, Math.min(t + pulseOn, end));
 
       osc.connect(gain).connect(audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + duration);
-    });
+      osc.start(t);
+      osc.stop(Math.min(t + pulseOn, end));
+
+      t += pulseOn + pulseOff;
+      idx++;
+    }
   }catch(e){
     console.warn("Sound notification failed:", e);
   }
@@ -269,11 +274,11 @@ onValue(ref(db, "cafe/orders"), snap=>{
   }
   lastIds = currentIds;
 
-  document.getElementById("order-count").textContent = orders.length + " Р°РєС‚РёРІРЅРёС… Р·Р°РјРѕРІР»РµРЅСЊ";
+  document.getElementById("order-count").textContent = orders.length + " активних замовлень";
   const container = document.getElementById("orders-container");
 
   if(!orders.length){
-    container.innerHTML = '<div class="empty-kitchen"><div class="empty-icon">рџ‘ЁвЂЌрџЌі</div><div class="empty-txt">РќРµРјР°С” Р°РєС‚РёРІРЅРёС… Р·Р°РјРѕРІР»РµРЅСЊ</div><div style="margin-top:8px;font-size:14px;color:#5a7a5a">РћС‡С–РєСѓС”РјРѕ РЅРѕРІС– Р·Р°РјРѕРІР»РµРЅРЅСЏ...</div></div>';
+    container.innerHTML = '<div class="empty-kitchen"><div class="empty-icon">👨‍🍳</div><div class="empty-txt">Немає активних замовлень</div><div style="margin-top:8px;font-size:14px;color:#5a7a5a">Очікуємо нові замовлення...</div></div>';
     return;
   }
 
@@ -282,20 +287,20 @@ onValue(ref(db, "cafe/orders"), snap=>{
     const dt = new Date(o.createdAt || Date.now());
     const time = dt.toLocaleTimeString("uk-UA", {hour:"2-digit", minute:"2-digit"});
     const mins = Math.floor((Date.now() - dt.getTime()) / 60000);
-    const timeLabel = mins < 1 ? "Р©РѕР№РЅРѕ" : (mins + " С…РІ С‚РѕРјСѓ");
+    const timeLabel = mins < 1 ? "Щойно" : (mins + " хв тому");
 
     html += `<div class="order-card">
       <div class="order-card-hdr">
-        <div><div class="order-table">РЎС‚С–Р» в„–${o.table ?? "-"}</div><div class="order-waiter">${o.waiterName || ""}</div></div>
+        <div><div class="order-table">Стіл №${o.table ?? "-"}</div><div class="order-waiter">${o.waiterName || ""}</div></div>
         <div class="order-time">${time}<br><span style="font-size:11px;opacity:.8">${timeLabel}</span></div>
       </div>
       <div class="order-items">`;
 
     (o.items || []).forEach(i=>{
-      html += `<div class="order-item"><span class="order-item-name">${i.name || ""}</span><span class="order-item-qty">Г— ${i.qty || 1}</span></div>`;
+      html += `<div class="order-item"><span class="order-item-name">${i.name || ""}</span><span class="order-item-qty">× ${i.qty || 1}</span></div>`;
     });
 
-    html += `</div><div class="order-footer"><button class="close-btn" onclick="closeOrder('${o.id}')">вњ“ Р“РѕС‚РѕРІРѕ / Р’РёРґР°С‚Рё</button></div></div>`;
+    html += `</div><div class="order-footer"><button class="close-btn" onclick="closeOrder('${o.id}')">✓ Готово / Видати</button></div></div>`;
   });
   html += '</div>';
   container.innerHTML = html;
@@ -315,7 +320,7 @@ setInterval(updateClock, 1000);
 
 const saved = loadSession();
 if(saved){
-  startKitchenApp(saved.name || saved.login || "РљСѓС…РЅСЏ");
+  startKitchenApp(saved.name || saved.login || "Кухня");
 }
 
 document.getElementById("k-pwd").addEventListener("keydown", e=>{
@@ -323,5 +328,7 @@ document.getElementById("k-pwd").addEventListener("keydown", e=>{
 });
 </script>
 </body></html>
+
+
 
 
