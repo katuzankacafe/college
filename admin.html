@@ -344,6 +344,7 @@ function renderHistory(){
     <input class="input" type="date" id="history-date" value="${esc(historyFilterDate)}" style="max-width:190px">
     <button class="btn btn-sm btn-outline" onclick="applyHistoryDate()">Фільтрувати</button>
     <button class="btn btn-sm btn-outline" onclick="clearHistoryDate()">Скинути</button>
+    <button class="btn btn-sm btn-outline" onclick="exportHistoryCsv()">Експорт CSV</button>
     <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:none" onclick="deleteSelectedHistory()">Видалити вибрані</button>
     <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:none" onclick="deleteFilteredHistory()">Видалити за фільтром</button>
   </div>`;
@@ -472,6 +473,81 @@ window.deleteFilteredHistory = async function(){
   for(const id of ids) await remove(ref(db,`cafe/orders/${id}`));
   ids.forEach(id=>historySelectedIds.delete(id));
   showToast();
+};
+
+window.exportHistoryCsv = function(){
+  const closedOrders = Object.values(ordersData||{})
+    .filter(o=>o && o.status==="closed")
+    .sort((a,b)=>new Date(b.closedAt||b.createdAt||0)-new Date(a.closedAt||a.createdAt||0));
+
+  const list = historyFilterDate
+    ? closedOrders.filter(o=>toLocalDateStr(o.closedAt||o.createdAt)===historyFilterDate)
+    : closedOrders;
+
+  if(!list.length){
+    alert("Немає записів для експорту.");
+    return;
+  }
+
+  const sep = ";";
+  const header = [
+    "order_id","status","table","waiter_name","waiter_login",
+    "created_at","closed_at","item_name","item_qty","item_price","item_total","order_total"
+  ];
+
+  const rows = [header];
+
+  for(const o of list){
+    const items = Array.isArray(o.items) ? o.items : [];
+    const orderTotal = items.reduce((s,i)=>s+Number(i?.price||0)*Number(i?.qty||0),0).toFixed(2);
+
+    if(!items.length){
+      rows.push([
+        String(o.id||""),
+        String(o.status||""),
+        String(o.table??""),
+        String(o.waiterName||""),
+        String(o.waiterLogin||""),
+        String(o.createdAt||""),
+        String(o.closedAt||""),
+        "", "", "", "",
+        orderTotal
+      ]);
+      continue;
+    }
+
+    for(const i of items){
+      const itemTotal = (Number(i?.price||0)*Number(i?.qty||0)).toFixed(2);
+      rows.push([
+        String(o.id||""),
+        String(o.status||""),
+        String(o.table??""),
+        String(o.waiterName||""),
+        String(o.waiterLogin||""),
+        String(o.createdAt||""),
+        String(o.closedAt||""),
+        String(i?.name||""),
+        String(i?.qty??""),
+        Number(i?.price||0).toFixed(2),
+        itemTotal,
+        orderTotal
+      ]);
+    }
+  }
+
+  const q = (v)=>`"${String(v).replaceAll('"','""')}"`;
+  const csv = rows.map(r=>r.map(q).join(sep)).join("\r\n");
+  const bom = "\uFEFF"; // for correct UTF-8 in Excel
+  const blob = new Blob([bom + csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const postfix = historyFilterDate ? `_${historyFilterDate}` : "_all";
+  a.href = url;
+  a.download = `history_orders${postfix}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 };
 
 let _sid="",_catId="",_dishId="",_photo="",_editActive=true;
