@@ -170,7 +170,7 @@ const firebaseConfig = {
 };
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
@@ -212,10 +212,37 @@ function startApp(user){
 onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};if(currentUser)renderMenu(currentSection);});
 onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
 
-// Auto-login if session exists
-const savedSession=loadSession();
-if(savedSession)startApp(savedSession);
+// Start app only from real Firebase auth state.
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    currentUser=null;
+    clearSession();
+    document.getElementById("login-screen").style.display="flex";
+    document.getElementById("app-screen").style.display="none";
+    return;
+  }
 
+  const email=(user.email||"").toLowerCase();
+  const login=email.includes("@")?email.split("@")[0]:"";
+  if(!login)return;
+
+  try{
+    const snap=await get(ref(db,"cafe/users/"+login));
+    const u=snap.val();
+    if(!u||u.role!=="waiter"){
+      await signOut(auth);
+      document.getElementById("lerr").textContent="Немає доступу для офіціанта";
+      return;
+    }
+
+    const userData={login,name:(u.name||login),email};
+    saveSession(userData);
+    startApp(userData);
+  }catch(e){
+    console.error("auth-state waiter check failed",e);
+    document.getElementById("lerr").textContent="Помилка перевірки доступу";
+  }
+});
 document.getElementById("pwd-input").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 
 window.doLogin=async function(){
@@ -237,19 +264,6 @@ window.doLogin=async function(){
 
   try{
     await signInWithEmailAndPassword(auth,email,pwd);
-
-    const snap=await get(ref(db,"cafe/users/"+login));
-    const u=snap.val();
-
-    if(!u||u.role!=="waiter"){
-      await signOut(auth);
-      errEl.textContent="Немає доступу для офіціанта";
-      return;
-    }
-
-    const user={login,name:(u.name||login),email};
-    saveSession(user);
-    startApp(user);
   }catch(e){
     console.error(e);
     const code=e&&e.code?String(e.code):"";
@@ -382,6 +396,12 @@ window.submitOrder=async function(){
   const errEl=document.getElementById("confirm-err");
   const submitBtn=document.getElementById("submit-order-btn");
   if(submitInFlight)return;
+
+  const authUser=auth.currentUser;
+  if(!authUser){
+    errEl.textContent="Сесія завершилась. Увійдіть знову.";
+    return;
+  }
   if(!selectedTable){errEl.textContent="\u041E\u0431\u0435\u0440\u0456\u0442\u044C \u0441\u0442\u043E\u043B\u0438\u043A";return;}
   const items=getCartItems();
   if(!items.length){errEl.textContent="\u0414\u043E\u0434\u0430\u0439\u0442\u0435 \u0441\u0442\u0440\u0430\u0432\u0438";return;}
@@ -390,6 +410,7 @@ window.submitOrder=async function(){
   if(submitBtn)submitBtn.disabled=true;
   errEl.textContent="";
   try{
+    await auth.currentUser.getIdToken(true);
     const orderRef=push(ref(db,"cafe/orders"));
     await set(orderRef,{
       id:orderRef.key,table:selectedTable,
@@ -413,6 +434,9 @@ window.newOrder=function(){cart={};showPage("pg-menu");renderMenu(currentSection
 function showPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo(0,0);}
 </script>
 </body></html>
+
+
+
 
 
 

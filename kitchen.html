@@ -91,7 +91,7 @@ const firebaseConfig = {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -184,8 +184,7 @@ window.__doKitchenLogin = async function(){
       throw new Error("Немає доступу для кухні");
     }
 
-    saveSession(loginKey, displayName);
-    startKitchenApp(displayName);
+    // App start is handled by onAuthStateChanged after auth is fully ready.
   }catch(e){
     const code = e && e.code ? String(e.code) : "";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
@@ -315,16 +314,52 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000);
 
-const saved = loadSession();
-if(saved){
-  startKitchenApp(saved.name || saved.login || "Кухня");
-}
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    clearSession();
+    document.getElementById("k-login-screen").style.display = "flex";
+    document.getElementById("k-app").style.display = "none";
+    return;
+  }
 
+  const email = (user.email || "").toLowerCase();
+  const loginKey = email.includes("@") ? email.split("@")[0] : "";
+  if(!loginKey){
+    await signOut(auth);
+    return;
+  }
+
+  let roleOk = false;
+  let displayName = loginKey;
+  try{
+    const snap = await get(ref(db, "cafe/users/" + loginKey));
+    const u = snap.val();
+    if(u && u.role === "kitchen"){
+      roleOk = true;
+      displayName = u.name || loginKey;
+    }
+  }catch(_e){}
+
+  if(!roleOk && loginKey === "kitchen"){
+    roleOk = true;
+    displayName = "Кухня";
+  }
+
+  if(!roleOk){
+    await signOut(auth);
+    document.getElementById("k-err").textContent = "Немає доступу для кухні";
+    return;
+  }
+
+  // App start is handled by onAuthStateChanged after auth is fully ready.
+});
 document.getElementById("k-pwd").addEventListener("keydown", e=>{
   if(e.key === "Enter") doKitchenLogin();
 });
 </script>
 </body></html>
+
+
 
 
 
