@@ -184,7 +184,8 @@ window.__doKitchenLogin = async function(){
       throw new Error("Немає доступу для кухні");
     }
 
-    // App start is handled by onAuthStateChanged after auth is fully ready.
+    saveSession(loginKey, displayName);
+  startKitchenApp(displayName);
   }catch(e){
     const code = e && e.code ? String(e.code) : "";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
@@ -351,13 +352,16 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  // App start is handled by onAuthStateChanged after auth is fully ready.
+  saveSession(loginKey, displayName);
+  startKitchenApp(displayName);
 });
 document.getElementById("k-pwd").addEventListener("keydown", e=>{
   if(e.key === "Enter") doKitchenLogin();
 });
 </script>
 </body></html>
+
+
 
 
 
