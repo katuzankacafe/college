@@ -284,6 +284,7 @@ function playNewOrderSound(){
   }catch(e){
     console.warn("Sound notification failed:", e);
   }
+}
 let unsubOrders = null;
 function ensureOrdersListener(){
   if(unsubOrders) return;
