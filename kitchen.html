@@ -187,6 +187,7 @@ window.__doKitchenLogin = async function(){
     }
 
     saveSession(loginKey, displayName);
+    startKitchenApp(displayName);
   }catch(e){
     const code = e && e.code ? String(e.code) : "";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
