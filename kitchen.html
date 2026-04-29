@@ -129,6 +129,7 @@ function clearSession(){
 function startKitchenApp(name){
   document.getElementById("k-login-screen").style.display = "none";
   document.getElementById("k-app").style.display = "block";
+  armSoundOnFirstGesture();
 }
 
 window.__doKitchenLogin = async function(){
@@ -217,47 +218,72 @@ window.__doKitchenLogout = async function(){
 
 let lastIds = [];
 let audioCtx = null;
+let soundArmed = false;
 
-function playNewOrderSound(){
+function ensureAudioContext(){
   try{
     if(!audioCtx){
       const AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC) return;
+      if(!AC) return null;
       audioCtx = new AC();
     }
-    if(audioCtx.state === "suspended") audioCtx.resume();
-
-    const start = audioCtx.currentTime;
-
-    function bell(at){
-      const freqs = [1046.5, 1318.5, 1568]; // C6, E6, G6
-      freqs.forEach((f, i) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(f, at);
-
-        const peak = i === 0 ? 0.22 : (i === 1 ? 0.12 : 0.08);
-        gain.gain.setValueAtTime(0.0001, at);
-        gain.gain.exponentialRampToValueAtTime(peak, at + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.35);
-
-        osc.connect(gain).connect(audioCtx.destination);
-        osc.start(at);
-        osc.stop(at + 0.36);
-      });
-    }
-
-    bell(start);        // Дзинь
-    bell(start + 0.55); // Дзинь
-    bell(start + 0.55); // Дзинь
-  }catch(e){
-    console.warn("Sound notification failed:", e);
+    return audioCtx;
+  }catch(_e){
+    return null;
   }
 }
 
-onValue(ref(db, "cafe/orders"), snap=>{
+function armSoundOnFirstGesture(){
+  if(soundArmed) return;
+  const unlock = ()=>{
+    const ctx = ensureAudioContext();
+    if(ctx && ctx.state === "suspended"){
+      ctx.resume().catch(()=>{});
+    }
+    soundArmed = true;
+    window.removeEventListener("pointerdown", unlock, true);
+    window.removeEventListener("keydown", unlock, true);
+  };
+  window.addEventListener("pointerdown", unlock, true);
+  window.addEventListener("keydown", unlock, true);
+}
+
+function playNewOrderSound(){
+  try{
+    const ctx = ensureAudioContext();
+    if(!ctx) return;
+    if(ctx.state === "suspended"){
+      ctx.resume().catch(()=>{});
+    }
+
+    const base = ctx.currentTime + 0.02;
+
+    function ding(at){
+      const freqs = [880, 1320, 1760];
+      freqs.forEach((f, i)=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(f, at);
+
+        const peak = i===0 ? 0.22 : (i===1 ? 0.14 : 0.09);
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(peak, at + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.20);
+
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(at);
+        osc.stop(at + 0.22);
+      });
+    }
+
+    ding(base);
+    ding(base + 0.34);
+    ding(base + 0.68);
+  }catch(e){
+    console.warn("Sound notification failed:", e);
+  }
+}onValue(ref(db, "cafe/orders"), snap=>{
   const data = snap.val() || {};
   const orders = Object.values(data).filter(o=>o && o.status === "open");
 
@@ -360,6 +386,9 @@ document.getElementById("k-pwd").addEventListener("keydown", e=>{
 });
 </script>
 </body></html>
+
+
+
 
 
 
