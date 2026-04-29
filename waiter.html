@@ -183,6 +183,7 @@ let cart={};
 let currentSection="obidy";
 let menuData={};
 let ordersData={};
+let unsubOrders = null;
 
 const SESSION_KEY="cafe_waiter_session";
 const SESSION_HOURS=8;
@@ -207,15 +208,27 @@ function startApp(user){
   document.getElementById("app-screen").style.display="block";
   document.getElementById("waiter-name").textContent=user.name;
   cart={};renderMenu("obidy");
+  ensureOrdersListener();
 }
 
 onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};if(currentUser)renderMenu(currentSection);});
-onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
+function ensureOrdersListener(){
+  if(unsubOrders) return;
+  unsubOrders = onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
+}
+function stopOrdersListener(){
+  if(unsubOrders){
+    unsubOrders();
+    unsubOrders=null;
+  }
+  ordersData={};
+}
 
 // Start app only from real Firebase auth state.
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     currentUser=null;
+    stopOrdersListener();
     clearSession();
     document.getElementById("login-screen").style.display="flex";
     document.getElementById("app-screen").style.display="none";

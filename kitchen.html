@@ -130,6 +130,7 @@ function startKitchenApp(name){
   document.getElementById("k-login-screen").style.display = "none";
   document.getElementById("k-app").style.display = "block";
   armSoundOnFirstGesture();
+  ensureOrdersListener();
 }
 
 window.__doKitchenLogin = async function(){
@@ -186,7 +187,6 @@ window.__doKitchenLogin = async function(){
     }
 
     saveSession(loginKey, displayName);
-  startKitchenApp(displayName);
   }catch(e){
     const code = e && e.code ? String(e.code) : "";
     if(["auth/wrong-password","auth/user-not-found","auth/invalid-credential","auth/invalid-email"].includes(code)){
@@ -283,7 +283,10 @@ function playNewOrderSound(){
   }catch(e){
     console.warn("Sound notification failed:", e);
   }
-}onValue(ref(db, "cafe/orders"), snap=>{
+let unsubOrders = null;
+function ensureOrdersListener(){
+  if(unsubOrders) return;
+  unsubOrders = onValue(ref(db, "cafe/orders"), snap=>{
   const data = snap.val() || {};
   const orders = Object.values(data).filter(o=>o && o.status === "open");
 
@@ -327,7 +330,16 @@ function playNewOrderSound(){
   });
   html += '</div>';
   container.innerHTML = html;
-});
+  });
+}
+
+function stopOrdersListener(){
+  if(unsubOrders){
+    unsubOrders();
+    unsubOrders = null;
+  }
+  lastIds = [];
+}
 
 window.__closeOrder = async function(id){
   if(!id) return;
@@ -343,6 +355,7 @@ setInterval(updateClock, 1000);
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
+    stopOrdersListener();
     clearSession();
     document.getElementById("k-login-screen").style.display = "flex";
     document.getElementById("k-app").style.display = "none";
